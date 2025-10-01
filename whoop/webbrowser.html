@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Leaderboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 40px; }
+    .highlight { font-size: 1.5em; color: green; margin-bottom: 20px; }
+    table { margin: auto; border-collapse: collapse; font-size: 1.2em; }
+    td, th { padding: 8px 16px; border: 1px solid #ddd; }
+    th { background: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <h1>🏆 Live Scoreboard</h1>
+  <div id="your-score"></div>
+  <table id="leaderboard">
+    <thead>
+      <tr><th>Rank</th><th>Name</th><th>Score</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const yourName = "Suzanne"; // match the player name from Python
+
+    async function loadScores() {
+      try {
+        const res = await fetch("http://127.0.0.1:5000/leaderboard");
+        const scores = await res.json();
+
+        // sort descending by score
+        scores.sort((a, b) => b.score - a.score);
+
+        let tbody = document.querySelector("#leaderboard tbody");
+        tbody.innerHTML = "";
+
+        scores.forEach((player, i) => {
+          let row = `<tr>
+            <td>${i+1}</td>
+            <td>${player.name}</td>
+            <td>${player.score}</td>
+          </tr>`;
+          tbody.innerHTML += row;
+        });
+
+        // Highlight latest submission of this player
+        let yourPlayers = scores.filter(p => p.name === yourName);
+        if (yourPlayers.length > 0) {
+          let latest = yourPlayers[yourPlayers.length - 1];
+          let rank = scores.indexOf(latest) + 1;
+          document.getElementById("your-score").innerHTML =
+            `<p class="highlight">🎉 You scored ${latest.score} points! You are in place #${rank}!</p>`;
+        } else {
+          document.getElementById("your-score").innerHTML = "";
+        }
+
+      } catch (err) {
+        console.error("Could not load scores:", err);
+      }
+    }
+
+    setInterval(loadScores, 2000); // refresh every 2s
+    loadScores();
+  </script>
+</body>
+</html>
